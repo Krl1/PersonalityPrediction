@@ -98,12 +98,13 @@ def sweep_iteration():
         dirpath=chkp_dir,
         save_top_k=1,
         verbose=True,
-        monitor="val_loss_epoch",
-        mode="min",
+        monitor="val_acc_epoch",
+        mode="max",
     )
 
     earlyStopping = EarlyStopping(
-        monitor="val_loss_epoch",
+        monitor="val_acc_epoch",
+        mode="max",
         patience=TrainingConfig.patience,
     )
     
@@ -129,13 +130,13 @@ def sweep_iteration():
     
     # setup model - note how we refer to sweep parameters with wandb.config
     model = init_CNN7(
-        negative_slope=NetworkConfig.negative_slope, 
+        negative_slope=wandb.config.negative_slope, 
         batch_size = wandb.config.batch_size,
-        batch_norm=NetworkConfig.batch_norm, 
+        batch_norm=wandb.config.batch_norm, 
         dropout=wandb.config.dropout,
         lr=wandb.config.lr, 
     )
-
+    
     # setup Trainer
     trainer = Trainer(
         accumulate_grad_batches=TrainingConfig.accumulate_grad_batches,
@@ -145,11 +146,11 @@ def sweep_iteration():
         gpus=TrainingConfig.gpus,
         logger=wandb_logger,
     )
-
+    
     # train
     trainer.fit(model, dm)
     
-    
+       
 def init_output_dirs() -> None:
     Path(LocationConfig.checkpoints_dir).mkdir(exist_ok=True, parents=True)
     Path(LocationConfig.best_model).parent.mkdir(exist_ok=True, parents=True)
@@ -178,15 +179,22 @@ if __name__ == "__main__":
     sweep_config = {
       "method": "random",
       "metric": {
-          "name": "val_loss_epoch",
-          "goal": "minimize"
+          "name": "val_acc_epoch",
+          "goal": "maximize"
       },
+#       "parameters": {
+#             "batch_norm": {"values": [True, False]}, 
+#             "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
+#             "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
+#             "lr": {"values": [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5, 5e-6]},
+#             "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
+#         },
       "parameters": {
-            "batch_norm": {"values": [True, False]}, 
-            "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
-            "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
-            "lr": {"values": [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5, 5e-6]},
-            "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
+            "batch_norm": {"values": [True]}, 
+            "dropout": {"values": [0.4]}, 
+            "negative_slope": {"values": [0.0]},
+            "lr": {"values": [2e-4]},
+            "batch_size": {"values": [16]},
         }
     }
     

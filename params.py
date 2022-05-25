@@ -2,7 +2,7 @@ RANDOM_SEED = 42
 DATA_NAME = 'BFD'
 
 class WandbConfig:
-    project_name = 'BFD_crop'
+    project_name = 'BFD_crop_split'
     run_name = 'final_run'
     entity = 'krl1'
     save_dir = '.'
@@ -10,7 +10,7 @@ class WandbConfig:
 
 class CreateDataConfig:
     classification = True
-    test_size_ratio = 0.2
+    test_size_ratio = 0.1
     Y_threshold = 0.5
     connect = True
 
