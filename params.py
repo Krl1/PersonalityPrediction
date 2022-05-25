@@ -20,8 +20,9 @@ class LocationConfig:
     crop_images = f'data/{DATA_NAME}/crop_images/'
     best_model = f'model/{DATA_NAME}/best.pt'
     images = f'data/{DATA_NAME}/images/'
+    encodings = f'data/{DATA_NAME}/enc/'
     labels = f'data/{DATA_NAME}/'
-    data = f'data/{DATA_NAME}/'
+    data = f'data/{DATA_NAME}/enc/'
     
     
 class TrainingConfig:
