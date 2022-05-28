@@ -2,7 +2,7 @@ RANDOM_SEED = 42
 DATA_NAME = 'BFD'
 
 class WandbConfig:
-    project_name = 'BFD_crop_split'
+    project_name = f'{DATA_NAME}_crop_split_gray'
     run_name = 'final_run'
     entity = 'krl1'
     save_dir = '.'
@@ -20,9 +20,11 @@ class LocationConfig:
     crop_images = f'data/{DATA_NAME}/crop_images/'
     best_model = f'model/{DATA_NAME}/best.pt'
     images = f'data/{DATA_NAME}/images/'
-    encodings = f'data/{DATA_NAME}/enc/'
     labels = f'data/{DATA_NAME}/'
-    data = f'data/{DATA_NAME}/enc/'
+    enc = f'data/{DATA_NAME}/enc/'
+    data = f'data/{DATA_NAME}/gray/'
+    rgb = f'data/{DATA_NAME}/rgb/'
+    gray = f'data/{DATA_NAME}/gray/'
     
     
 class TrainingConfig:

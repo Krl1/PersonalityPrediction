@@ -31,7 +31,7 @@ class CNN7(pl.LightningModule):
         # Conv
         fm_size = 16
         self.conv = nn.Sequential()
-        self.conv.add_module(f"conv_0",nn.Conv2d(3, fm_size, (3,3), stride=1, padding='same'))
+        self.conv.add_module(f"conv_0",nn.Conv2d(1, fm_size, (3,3), stride=1, padding='same'))
         if self.batch_norm:
             self.conv.add_module(f"batch_norm_0", nn.BatchNorm2d(fm_size))
         if self.negative_slope == 0.0:
