@@ -47,18 +47,30 @@ class CNN7(pl.LightningModule):
             if self.batch_norm:
                 self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
             if self.negative_slope == 0.0:
-                self.conv.add_module(f"relu_0", nn.ReLU())
+                self.conv.add_module(f"relu_{i}", nn.ReLU())
             else:
                 self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
             if self.dropout != 0.0:
-                self.conv.add_module(f"dropout_0", nn.Dropout(self.dropout))
+                self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
             self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2))
             fm_size *= 2
+        
+        self.conv.add_module(f"conv_7",nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+        if self.batch_norm:
+            self.conv.add_module(f"batch_norm_7", nn.BatchNorm2d(fm_size*2))
+        if self.negative_slope == 0.0:
+            self.conv.add_module(f"relu_7", nn.ReLU())
+        else:
+            self.conv.add_module(f"lrelu_7", nn.LeakyReLU(self.negative_slope))
+        if self.dropout != 0.0:
+            self.conv.add_module(f"dropout_7", nn.Dropout(self.dropout))
+        self.conv.add_module(f"max_pool_7", nn.MaxPool2d(2, ceil_mode=True))
+        fm_size *= 2
         
         # Linear
         self.linear = nn.Sequential() 
         self.linear.add_module("flatten", nn.Flatten())
-        self.linear.add_module("linear_0", nn.Linear(fm_size*2, 128))
+        self.linear.add_module("linear_0", nn.Linear(fm_size, 128))
         if self.batch_norm:
             self.linear.add_module(f"batch_norm_0", nn.BatchNorm1d(128))
         if self.negative_slope ==0.0:
