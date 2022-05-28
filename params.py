@@ -1,8 +1,9 @@
 RANDOM_SEED = 42
 DATA_NAME = 'BFD'
+DATA_TYPE = 'rgb'
 
 class WandbConfig:
-    project_name = f'{DATA_NAME}_crop_split_gray'
+    project_name = f'{DATA_NAME}_{DATA_TYPE}'
     run_name = 'final_run'
     entity = 'krl1'
     save_dir = '.'
@@ -22,7 +23,7 @@ class LocationConfig:
     images = f'data/{DATA_NAME}/images/'
     labels = f'data/{DATA_NAME}/'
     enc = f'data/{DATA_NAME}/enc/'
-    data = f'data/{DATA_NAME}/gray/'
+    data = f'data/{DATA_NAME}/{DATA_TYPE}/'
     rgb = f'data/{DATA_NAME}/rgb/'
     gray = f'data/{DATA_NAME}/gray/'
     

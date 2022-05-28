@@ -17,6 +17,7 @@ from params import (
     NetworkConfig,
 )
 from models.cnn7 import CNN7
+from models.cnn8 import CNN8
 
 
 def get_all_checkpoints():
@@ -37,11 +38,22 @@ def init_CNN7(lr, batch_norm, negative_slope, dropout, batch_size) -> CNN7:
     return cnn7
 
 
+def init_CNN8(lr, batch_norm, negative_slope, dropout, batch_size) -> CNN8:
+    cnn7 = CNN8(
+        lr=lr,
+        batch_norm=batch_norm,
+        negative_slope=negative_slope,
+        dropout = dropout,
+        batch_size = batch_size
+        )
+    return cnn7
+
+
 def save_model_from_last_checkpoint_as_state_dict() -> None:
     list_of_checkpoints = get_all_checkpoints()
     latest_checkpoint_path = max(list_of_checkpoints, key=lambda p: p.stat().st_ctime)
 
-    lightning_model = init_CNN7()
+    lightning_model = init_CNN8()
     lightning_model.load_from_checkpoint(latest_checkpoint_path)
     lightning_model.eval()
     lightning_model = lightning_model.cpu()
@@ -52,7 +64,7 @@ def save_model_from_last_checkpoint_as_state_dict() -> None:
     print("Saved the latest model at:", best_model_path)
 
 
-def run_train(dm: Datamodule, model: CNN7):
+def run_train(dm: Datamodule, model: CNN8):
 
     chkp_dir = Path(LocationConfig.checkpoints_dir)
     modelCheckpoint = ModelCheckpoint(
@@ -129,7 +141,7 @@ def sweep_iteration():
     )
     
     # setup model - note how we refer to sweep parameters with wandb.config
-    model = init_CNN7(
+    model = init_CNN8(
         negative_slope=wandb.config.negative_slope, 
         batch_size = wandb.config.batch_size,
         batch_norm=wandb.config.batch_norm, 
@@ -159,22 +171,6 @@ def init_output_dirs() -> None:
 if __name__ == "__main__":
     init_output_dirs()
     pl.seed_everything(RANDOM_SEED)
-
-    # train_data_path = Path(LocationConfig.new_data + 'train/')
-    # test_data_path = Path(LocationConfig.new_data + 'test/')
-    # dm = Datamodule(
-    #     batch_size=TrainingConfig.batch_size,
-    #     train_dir=train_data_path,
-    #     val_dir=test_data_path,
-    # )
-    # model = init_CNN7(
-    #     lr=TrainingConfig.lr, 
-    #     batch_norm=NetworkConfig.batch_norm, 
-    #     negative_slope=NetworkConfig.negative_slope, 
-    #     dropout=NetworkConfig.dropout, 
-    #     batch_size=TrainingConfig.batch_size
-    # )
-    # run_train(dm, model)
     
     sweep_config = {
       "method": "random",
@@ -182,13 +178,6 @@ if __name__ == "__main__":
           "name": "val_loss_epoch",
           "goal": "minimize"
       },
-#       "parameters": {
-#             "batch_norm": {"values": [True, False]}, 
-#             "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
-#             "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
-#             "lr": {"values": [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5, 5e-6]},
-#             "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
-#         },
       "parameters": {
             "batch_norm": {"values": [False, True]}, 
             "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
@@ -199,4 +188,4 @@ if __name__ == "__main__":
     }
     
     sweep_id = wandb.sweep(sweep_config, project=WandbConfig.project_name)
-    wandb.agent(sweep_id, function=sweep_iteration, count=100)
+    wandb.agent(sweep_id, function=sweep_iteration, count=50)
