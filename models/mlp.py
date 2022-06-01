@@ -49,7 +49,6 @@ class MLP(pl.LightningModule):
 
     
     def forward(self, x):
-#         x = x.permute(0, 3, 1, 2)
         x = self.linear(x) 
         return x
     
@@ -84,6 +83,7 @@ class MLP(pl.LightningModule):
         self.log('train_loss_epoch', sum_loss/len(outputs))
         accuracy = self.train_accuracy.compute()
         self.log('train_acc_epoch', accuracy)
+        self.train_accuracy.reset()
     
     def validation_step(self, batch, batch_idx):
         x, y = batch['original'], batch['label']
@@ -102,6 +102,7 @@ class MLP(pl.LightningModule):
         self.log('val_loss_epoch', torch.mean(outputs))
         accuracy = self.val_accuracy.compute()
         self.log('val_acc_epoch', accuracy)
+        self.val_accuracy.reset()
 
         
 class MLPsimple(nn.Module):
