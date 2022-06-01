@@ -109,18 +109,17 @@ def sweep_iteration():
         dirpath=chkp_dir,
         save_top_k=1,
         verbose=True,
-        monitor="val_acc_epoch",
-        mode="max",
+        monitor="val_loss_epoch",
+        mode="min",
     )
 
     earlyStopping = EarlyStopping(
-        monitor="val_acc_epoch",
-        mode="max",
+        monitor="val_loss_epoch",
+        mode="min",
         patience=wandb.config.batch_size,
     )
     
     # set up W&B logger
-    
     
     run_name = str(NetworkConfig.negative_slope) + '_'
     run_name += str(NetworkConfig.dropout)
@@ -131,8 +130,8 @@ def sweep_iteration():
         entity=WandbConfig.entity,
     )
     
-    train_data_path = Path(LocationConfig.enc + 'train/')
-    test_data_path = Path(LocationConfig.enc + 'test/')
+    train_data_path = Path(LocationConfig.data + 'train/')
+    test_data_path = Path(LocationConfig.data + 'test/')
     dm = Datamodule(
         batch_size=wandb.config.batch_size,
         train_dir=train_data_path,
@@ -170,44 +169,21 @@ def init_output_dirs() -> None:
 if __name__ == "__main__":
     init_output_dirs()
     pl.seed_everything(RANDOM_SEED)
-
-    # train_data_path = Path(LocationConfig.new_data + 'train/')
-    # test_data_path = Path(LocationConfig.new_data + 'test/')
-    # dm = Datamodule(
-    #     batch_size=TrainingConfig.batch_size,
-    #     train_dir=train_data_path,
-    #     val_dir=test_data_path,
-    # )
-    # model = init_BiggeMLP(
-    #     lr=TrainingConfig.lr, 
-    #     batch_norm=NetworkConfig.batch_norm, 
-    #     negative_slope=NetworkConfig.negative_slope, 
-    #     dropout=NetworkConfig.dropout, 
-    #     batch_size=TrainingConfig.batch_size
-    # )
-    # run_train(dm, model)
     
     sweep_config = {
       "method": "random",
       "metric": {
-          "name": "val_acc_epoch",
-          "goal": "maximize"
+          "name": "val_loss_epoch",
+          "goal": "minimize"
       },
-#       "parameters": {
-#             "batch_norm": {"values": [True, False]}, 
-#             "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
-#             "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
-#             "lr": {"values": [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5, 5e-6]},
-#             "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
-#         },
       "parameters": {
             "batch_norm": {"values": [False, True]}, 
+            "batch_size": {"values": [4, 8, 64, 128]},
             "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
+            "lr": {"values": [1e-2, 1e-3, 1e-4, 1e-5, 5e-3, 5e-4, 5e-5, 5e-6]},
             "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
-            "lr": {"values": [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 5e-3, 5e-4, 5e-5, 5e-6, 5e-7]},
-            "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128, 256]},
         }
     }
     
     sweep_id = wandb.sweep(sweep_config, project=WandbConfig.project_name)
-    wandb.agent(sweep_id, function=sweep_iteration, count=13)
+    wandb.agent(sweep_id, function=sweep_iteration, count=10)

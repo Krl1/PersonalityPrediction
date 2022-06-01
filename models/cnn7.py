@@ -23,8 +23,8 @@ class CNN7(pl.LightningModule):
         self.negative_slope = negative_slope
         self.dropout = dropout
         self.batch_size = batch_size
-        self.train_accuracy = Accuracy()
-        self.val_accuracy = Accuracy()
+        self.train_accuracy = Accuracy(threshold=0.0)
+        self.val_accuracy = Accuracy(threshold=0.0)
         
         self.criterion = nn.BCEWithLogitsLoss()
         

@@ -1,6 +1,6 @@
 RANDOM_SEED = 42
-DATA_NAME = 'BFD'
-DATA_TYPE = 'rgb'
+DATA_NAME = 'ChaLearn'
+DATA_TYPE = 'enc'
 
 class WandbConfig:
     project_name = f'{DATA_NAME}_{DATA_TYPE}'
@@ -38,6 +38,6 @@ class TrainingConfig:
     
 class NetworkConfig:
     negative_slope = 0.0
-    batch_norm = False
+    batch_norm = True
     dropout = 0.3
     lr = 1e-4
