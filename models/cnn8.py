@@ -13,7 +13,9 @@ class CNN8(pl.LightningModule):
         batch_norm: bool,
         negative_slope: float = 0.0,
         dropout: float = 0.4,
-        batch_size: int = 128
+        batch_size: int = 128,
+        data_type: str = 'gray',
+        dataset: str = 'BFD'
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -27,11 +29,12 @@ class CNN8(pl.LightningModule):
         self.val_accuracy = Accuracy(threshold=0.0)
         
         self.criterion = nn.BCEWithLogitsLoss()
+        first_dim = 1 if data_type=='gray' else 3
         
         # Conv
         fm_size = 16
         self.conv = nn.Sequential()
-        self.conv.add_module(f"conv_0",nn.Conv2d(1, fm_size, (3,3), stride=1, padding='same'))
+        self.conv.add_module(f"conv_0",nn.Conv2d(first_dim, fm_size, (3,3), stride=1, padding='same'))
         if self.batch_norm:
             self.conv.add_module(f"batch_norm_0", nn.BatchNorm2d(fm_size))
         if self.negative_slope == 0.0:
@@ -42,30 +45,45 @@ class CNN8(pl.LightningModule):
             self.conv.add_module(f"dropout_0", nn.Dropout(self.dropout))
         self.conv.add_module(f"max_pool_0", nn.MaxPool2d(2))
         
-        for i in range(1, 8):
-            self.conv.add_module(f"conv_{i}", nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+        if dataset=='BFD':
+            for i in range(1, 7):
+                self.conv.add_module(f"conv_{i}", nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+                if self.batch_norm:
+                    self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
+                if self.negative_slope == 0.0:
+                    self.conv.add_module(f"relu_{i}", nn.ReLU())
+                else:
+                    self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
+                if self.dropout != 0.0:
+                    self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
+                self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2))
+                fm_size *= 2
+
+            self.conv.add_module(f"conv_7",nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
             if self.batch_norm:
-                self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
+                self.conv.add_module(f"batch_norm_7", nn.BatchNorm2d(fm_size*2))
             if self.negative_slope == 0.0:
-                self.conv.add_module(f"relu_{i}", nn.ReLU())
+                self.conv.add_module(f"relu_7", nn.ReLU())
             else:
-                self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
+                self.conv.add_module(f"lrelu_7", nn.LeakyReLU(self.negative_slope))
             if self.dropout != 0.0:
-                self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
-            self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2, ceil_mode=True)) #, ceil_mode=True
+                self.conv.add_module(f"dropout_7", nn.Dropout(self.dropout))
+            self.conv.add_module(f"max_pool_7", nn.MaxPool2d(2, ceil_mode=True))
             fm_size *= 2
         
-        # self.conv.add_module(f"conv_7",nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
-        # if self.batch_norm:
-        #     self.conv.add_module(f"batch_norm_7", nn.BatchNorm2d(fm_size*2))
-        # if self.negative_slope == 0.0:
-        #     self.conv.add_module(f"relu_7", nn.ReLU())
-        # else:
-        #     self.conv.add_module(f"lrelu_7", nn.LeakyReLU(self.negative_slope))
-        # if self.dropout != 0.0:
-        #     self.conv.add_module(f"dropout_7", nn.Dropout(self.dropout))
-        # self.conv.add_module(f"max_pool_7", nn.MaxPool2d(2, ceil_mode=True))
-        # fm_size *= 2
+        elif dataset=='ChaLearn':
+            for i in range(1, 8):
+                self.conv.add_module(f"conv_{i}", nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+                if self.batch_norm:
+                    self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
+                if self.negative_slope == 0.0:
+                    self.conv.add_module(f"relu_{i}", nn.ReLU())
+                else:
+                    self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
+                if self.dropout != 0.0:
+                    self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
+                self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2, ceil_mode=True))
+                fm_size *= 2
         
         # Linear
         self.linear = nn.Sequential() 
@@ -170,7 +188,9 @@ class CNN8simple(nn.Module):
         batch_norm: bool,
         negative_slope: float = 0.0,
         dropout: float = 0.4,
-        batch_size: int = 128
+        batch_size: int = 128,
+        data_type: str = 'gray',
+        dataset: str = 'BFD'
     ):
         super(CNN8simple, self).__init__()
         
@@ -179,11 +199,12 @@ class CNN8simple(nn.Module):
         self.negative_slope = negative_slope
         self.dropout = dropout
         self.batch_size = batch_size
+        first_dim = 1 if data_type=='gray' else 3
         
         # Conv
         fm_size = 16
         self.conv = nn.Sequential()
-        self.conv.add_module(f"conv_0",nn.Conv2d(1, fm_size, (3,3), stride=1, padding='same'))
+        self.conv.add_module(f"conv_0",nn.Conv2d(first_dim, fm_size, (3,3), stride=1, padding='same'))
         if self.batch_norm:
             self.conv.add_module(f"batch_norm_0", nn.BatchNorm2d(fm_size))
         if self.negative_slope == 0.0:
@@ -194,30 +215,45 @@ class CNN8simple(nn.Module):
             self.conv.add_module(f"dropout_0", nn.Dropout(self.dropout))
         self.conv.add_module(f"max_pool_0", nn.MaxPool2d(2))
         
-        for i in range(1, 8):
-            self.conv.add_module(f"conv_{i}", nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+        if dataset=='BFD':
+            for i in range(1, 7):
+                self.conv.add_module(f"conv_{i}", nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+                if self.batch_norm:
+                    self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
+                if self.negative_slope == 0.0:
+                    self.conv.add_module(f"relu_{i}", nn.ReLU())
+                else:
+                    self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
+                if self.dropout != 0.0:
+                    self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
+                self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2))
+                fm_size *= 2
+
+            self.conv.add_module(f"conv_7",nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
             if self.batch_norm:
-                self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
+                self.conv.add_module(f"batch_norm_7", nn.BatchNorm2d(fm_size*2))
             if self.negative_slope == 0.0:
-                self.conv.add_module(f"relu_{i}", nn.ReLU())
+                self.conv.add_module(f"relu_7", nn.ReLU())
             else:
-                self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
+                self.conv.add_module(f"lrelu_7", nn.LeakyReLU(self.negative_slope))
             if self.dropout != 0.0:
-                self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
-            self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2, ceil_mode=True)) #, ceil_mode=True
+                self.conv.add_module(f"dropout_7", nn.Dropout(self.dropout))
+            self.conv.add_module(f"max_pool_7", nn.MaxPool2d(2, ceil_mode=True))
             fm_size *= 2
         
-        # self.conv.add_module(f"conv_7",nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
-        # if self.batch_norm:
-        #     self.conv.add_module(f"batch_norm_7", nn.BatchNorm2d(fm_size*2))
-        # if self.negative_slope == 0.0:
-        #     self.conv.add_module(f"relu_7", nn.ReLU())
-        # else:
-        #     self.conv.add_module(f"lrelu_7", nn.LeakyReLU(self.negative_slope))
-        # if self.dropout != 0.0:
-        #     self.conv.add_module(f"dropout_7", nn.Dropout(self.dropout))
-        # self.conv.add_module(f"max_pool_7", nn.MaxPool2d(2, ceil_mode=True))
-        # fm_size *= 2
+        elif dataset=='ChaLearn':
+            for i in range(1, 8):
+                self.conv.add_module(f"conv_{i}", nn.Conv2d(fm_size, fm_size*2, (3,3), stride=1, padding='same'))
+                if self.batch_norm:
+                    self.conv.add_module(f"batch_norm_{i}", nn.BatchNorm2d(fm_size*2))
+                if self.negative_slope == 0.0:
+                    self.conv.add_module(f"relu_{i}", nn.ReLU())
+                else:
+                    self.conv.add_module(f"lrelu_{i}", nn.LeakyReLU(self.negative_slope))
+                if self.dropout != 0.0:
+                    self.conv.add_module(f"dropout_{i}", nn.Dropout(self.dropout))
+                self.conv.add_module(f"max_pool_{i}", nn.MaxPool2d(2, ceil_mode=True))
+                fm_size *= 2
         
         # Linear
         self.linear = nn.Sequential() 
