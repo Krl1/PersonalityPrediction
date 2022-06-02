@@ -15,15 +15,17 @@ from dataset import PersonalityDataset
 from models.mlp import MLPsimple
 from models.cnn8 import CNN8simple
 
-dataset_name = 'BFD'
+dataset_name = 'ChaLearn'
 dataset_type = 'gray'
+
+batch_type = 'original' if dataset_type=='enc' else 'normalized'
 
 
 def train_epoch(model,device,dataloader,loss_fn,optimizer,train_accuracy):
     train_loss, train_correct=0.0,0
     model.train()
     for batch in dataloader:
-        images, labels = batch['normalized'], batch['label']
+        images, labels = batch[batch_type], batch['label']
         images = images.to(device)
         optimizer.zero_grad()
         output = model(images)
@@ -42,7 +44,7 @@ def valid_epoch(model,device,dataloader,loss_fn,val_accuracy):
     valid_loss, val_correct = 0.0, 0
     model.eval()
     for batch in dataloader:
-        images, labels = batch['normalized'], batch['label']
+        images, labels = batch[batch_type], batch['label']
         images = images.to(device)
         output = model(images)
         labels = torch.tensor(labels, dtype=torch.float32, device=output.device)

@@ -16,7 +16,7 @@ from params import (
     WandbConfig,
     NetworkConfig,
 )
-from models.mlp import MLP, BiggerMLP
+from models.mlp import MLP
 
 
 def get_all_checkpoints():
@@ -35,16 +35,6 @@ def init_MLP(lr, batch_norm, negative_slope, dropout, batch_size) -> MLP:
         batch_size = batch_size
         )
     return mlp
-
-def init_BiggerMLP(lr, batch_norm, negative_slope, dropout, batch_size) -> BiggerMLP:
-    biggerMLP = BiggerMLP(
-        lr=lr,
-        batch_norm=batch_norm,
-        negative_slope=negative_slope,
-        dropout = dropout,
-        batch_size = batch_size
-        )
-    return biggerMLP
 
 
 def save_model_from_last_checkpoint_as_state_dict() -> None:
@@ -178,7 +168,7 @@ if __name__ == "__main__":
       },
       "parameters": {
             "batch_norm": {"values": [False, True]}, 
-            "batch_size": {"values": [4, 8, 64, 128]},
+            "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
             "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
             "lr": {"values": [1e-2, 1e-3, 1e-4, 1e-5, 5e-3, 5e-4, 5e-5, 5e-6]},
             "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
@@ -186,4 +176,4 @@ if __name__ == "__main__":
     }
     
     sweep_id = wandb.sweep(sweep_config, project=WandbConfig.project_name)
-    wandb.agent(sweep_id, function=sweep_iteration, count=10)
+    wandb.agent(sweep_id, function=sweep_iteration, count=20)

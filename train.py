@@ -10,13 +10,14 @@ import wandb
 
 from datamodule import Datamodule
 from params import (
+    DATA_NAME,
+    DATA_TYPE,
     RANDOM_SEED,
     LocationConfig,
     TrainingConfig,
     WandbConfig,
     NetworkConfig,
 )
-from models.cnn7 import CNN7
 from models.cnn8 import CNN8
 
 
@@ -27,26 +28,17 @@ def get_all_checkpoints():
     return list_of_checkpoints
 
 
-def init_CNN7(lr, batch_norm, negative_slope, dropout, batch_size) -> CNN7:
-    cnn7 = CNN7(
-        lr=lr,
-        batch_norm=batch_norm,
-        negative_slope=negative_slope,
-        dropout = dropout,
-        batch_size = batch_size
-        )
-    return cnn7
-
-
 def init_CNN8(lr, batch_norm, negative_slope, dropout, batch_size) -> CNN8:
-    cnn7 = CNN8(
+    model = CNN8(
         lr=lr,
         batch_norm=batch_norm,
         negative_slope=negative_slope,
         dropout = dropout,
-        batch_size = batch_size
+        batch_size = batch_size,
+        data_type=DATA_TYPE,
+        dataset=DATA_NAME
         )
-    return cnn7
+    return model
 
 
 def save_model_from_last_checkpoint_as_state_dict() -> None:
@@ -180,8 +172,7 @@ if __name__ == "__main__":
       },
       "parameters": {
             "batch_norm": {"values": [False, True]}, 
-            # "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
-            "batch_size": {"values": [32]},
+            "batch_size": {"values": [2, 4, 8, 16, 32, 64, 128]},
             "dropout": {"values": [0.0, 0.1, 0.2, 0.3, 0.4]}, 
             "lr": {"values": [1e-2, 1e-3, 1e-4, 1e-5, 5e-3, 5e-4, 5e-5, 5e-6]},
             "negative_slope": {"values": [0.0, 0.01, 0.02, 0.05, 0.1]},
@@ -189,4 +180,4 @@ if __name__ == "__main__":
     }
     
     sweep_id = wandb.sweep(sweep_config, project=WandbConfig.project_name)
-    wandb.agent(sweep_id, function=sweep_iteration, count=5)
+    wandb.agent(sweep_id, function=sweep_iteration, count=50)
