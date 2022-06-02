@@ -22,7 +22,7 @@ batch_type = 'original' if dataset_type=='enc' else 'normalized'
 
 
 def train_epoch(model,device,dataloader,loss_fn,optimizer,train_accuracy):
-    train_loss, train_correct=0.0,0
+    train_loss, train_correct, train_correct_ocean = 0.0, 0, 0
     model.train()
     for batch in dataloader:
         images, labels = batch[batch_type], batch['label']
@@ -37,11 +37,12 @@ def train_epoch(model,device,dataloader,loss_fn,optimizer,train_accuracy):
         train_loss += loss.item() * images.size(0)
         predictions = torch.where(output>0, 1, 0)
         train_correct += (predictions == labels.to(torch.int64)).sum().item()
+        train_correct_ocean += (predictions == labels.to(torch.int64)).sum(dim=0)
 
-    return train_loss, train_correct
+    return train_loss, train_correct, train_correct_ocean
   
 def valid_epoch(model,device,dataloader,loss_fn,val_accuracy):
-    valid_loss, val_correct = 0.0, 0
+    valid_loss, val_correct, val_correct_ocean = 0.0, 0, 0
     model.eval()
     for batch in dataloader:
         images, labels = batch[batch_type], batch['label']
@@ -53,8 +54,9 @@ def valid_epoch(model,device,dataloader,loss_fn,val_accuracy):
         valid_loss += loss.item() * images.size(0)
         predictions = torch.where(output>0, 1, 0)
         val_correct += (predictions == labels.to(torch.int64)).sum().item()
+        val_correct_ocean += (predictions == labels.to(torch.int64)).sum(dim=0)
 
-    return valid_loss, val_correct
+    return valid_loss, val_correct, val_correct_ocean
 
 
 
@@ -107,28 +109,27 @@ for fold, (train_idx,val_idx) in enumerate(splits.split(np.arange(len(dataset)))
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     if dataset_type=='enc':
-        model = MLPsimple(**params)
+        model = MLPsimple(**params[model_name])
     else:
         model = CNN8simple(data_type=dataset_type, dataset=dataset_name, **params[model_name])
     
-    
-#     model = CNN8simple(**params[model_name])
-    # model = MLPsimple(**params)
     model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=params[model_name]['lr'])
 
-    history = {'train_loss': [], 'test_loss': [],'train_acc':[],'test_acc':[],'train_acc_2':[],'test_acc_2':[]}
+    history = {'train_loss': [], 'test_loss': [],'train_acc':[],'test_acc':[],'train_acc_2':[],'test_acc_2':[],'train_acc_ocean':[],'test_acc_ocean':[]}
 
     for epoch in range(epochs[model_name]):
-        train_loss, train_correct=train_epoch(model,device,train_loader,criterion,optimizer,train_accuracy)
-        test_loss, test_correct=valid_epoch(model,device,test_loader,criterion,val_accuracy)
+        train_loss, train_correct, train_correct_ocean = train_epoch(model,device,train_loader,criterion,optimizer,train_accuracy)
+        test_loss, test_correct, test_correct_ocean = valid_epoch(model,device,test_loader,criterion,val_accuracy)
 
         train_loss = train_loss / len(train_loader.sampler)
         train_acc = train_correct / (len(train_loader.sampler) * 5) * 100
         train_acc_2 = train_accuracy.compute() * 100
+        train_acc_ocean = train_correct_ocean / len(train_loader.sampler) * 100
         test_loss = test_loss / len(test_loader.sampler)
         test_acc = test_correct / (len(test_loader.sampler) * 5) * 100
         test_acc_2 = val_accuracy.compute() * 100
+        test_acc_ocean = test_correct_ocean / len(test_loader.sampler) * 100
 
         print("F {} | E:{}/{} Tra Loss:{:.3f} Test Loss:{:.3f} Tra Acc {:.2f}% | {:.2f}% Test Acc {:.2f}% | {:.2f}%".format(
             fold + 1,
@@ -147,6 +148,9 @@ for fold, (train_idx,val_idx) in enumerate(splits.split(np.arange(len(dataset)))
         history['test_acc'].append(test_acc)
         history['train_acc_2'].append(train_acc_2.item())
         history['test_acc_2'].append(test_acc_2.item())
+        print([t.item() for t in train_acc_ocean])
+        history['train_acc_ocean'].append([t.item() for t in train_acc_ocean])
+        history['test_acc_ocean'].append([t.item() for t in test_acc_ocean])
 
     foldperf['fold{}'.format(fold+1)] = history  
 

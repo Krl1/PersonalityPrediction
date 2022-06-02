@@ -11,6 +11,7 @@ tmp.ipynb
 my_data/
 old_data/
 shuffle_data/
+params.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
