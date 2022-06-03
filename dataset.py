@@ -14,19 +14,22 @@ class PersonalityDataset(Dataset):
         """
         super().__init__()
         self.file_list = pickle_dir.glob("*.pickle")
-        self.faces_list = dict(X=[],Y=[])
+        self.faces_list = dict(num=[],X=[],Y=[])
         for file in self.file_list:
             print('file:', file)
             pic = pickle.load(open(file, "rb"))
+            self.faces_list['num'].extend(np.array(pic['num']))
             self.faces_list['X'].extend(np.array(pic['X'], dtype='f'))
             self.faces_list['Y'].extend(np.array(pic['Y']))
                 
 
     def __getitem__(self, index):
+        num = self.faces_list['num'][index]
         image = self.faces_list['X'][index]
         label = self.faces_list['Y'][index]
         normalized = PersonalityDataset._normalize(image.copy())
         return {
+            "num": num,
             "original": image, 
             "normalized": normalized,
             "label": label
