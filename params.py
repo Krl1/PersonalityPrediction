@@ -1,6 +1,6 @@
 RANDOM_SEED = 42
-DATA_NAME = 'DENTA'
-DATA_TYPE = 'rgb'
+DATA_NAME = 'BFD'
+DATA_TYPE = 'enc'
 
 class WandbConfig:
     project_name = f'{DATA_NAME}_{DATA_TYPE}'

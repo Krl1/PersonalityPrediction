@@ -68,7 +68,7 @@ params['BFD_enc'] = {'batch_norm': True,'batch_size': 16,'dropout': 0.4,'lr': 0.
 params['BFD_gray'] = {'batch_norm': False,'batch_size': 16,'dropout': 0.4,'lr': 0.001,'negative_slope': 0.1}
 params['BFD_rgb'] = {'batch_norm': False,'batch_size': 8,'dropout': 0.0,'lr': 0.00005,'negative_slope': 0.02}
 params['ChaLearn_enc'] = {'batch_norm': False,'batch_size': 4,'dropout': 0.3,'lr': 0.001,'negative_slope': 0.1}
-params['ChaLearn_gray'] = {'batch_norm': True,'batch_size': 4,'dropout': 0.0,'lr': 0.001,'negative_slope': 0.01}
+params['ChaLearn_gray'] = {'batch_norm': False,'batch_size': 4,'dropout': 0.0,'lr': 0.001,'negative_slope': 0.01}
 params['ChaLearn_rgb'] = {'batch_norm': False,'batch_size': 8,'dropout': 0.0,'lr': 0.00005,'negative_slope': 0.1}
 
 epochs = {}
